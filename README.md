@@ -1,4 +1,4 @@
-<img width="432" height="21" alt="image" src="https://github.com/user-attachments/assets/c1c6a17e-dc1f-4eca-80c7-3cd98a233309" /># CBMAP_methylation_QTL
+# CBMAP_methylation_QTL
 This repository contains the analysis code for ***East Asian brain methylation QTL atlas reveals ancestry- and tissue-specific genetic regulation of neuropsychiatric traits***, one of the epigenomic investigations from the China Brain Multi-omics Atlas Project (CBMAP).
 * We performed genome-wide cis- and trans-mQTL mapping in 1,018 EAS PFC samples profiled using the EPICv2 array and compared the resulting mQTL landscape with European-ancestry PFC and EAS peripheral blood mQTL datasets.
 * We conceptualize cis- and trans-regulatory models, providing insights into how genetic variants shape DNA methylation through distinct regulatory processes.
