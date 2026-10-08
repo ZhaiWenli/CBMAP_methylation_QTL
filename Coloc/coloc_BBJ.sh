@@ -12,9 +12,9 @@
 #SBATCH --array=0-22%6
 taskplugin=task/affinity
 
-task=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" /data/projects/China_Brain_MultiOmics/methylation/mQTL/coloc/script/coloc_script/bbj_task_list2.txt)
+task=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" /methylation/mQTL/coloc/script/coloc_script/bbj_task_list2.txt)
 IFS=',' read trait chr batch <<< "$task"
 
 echo "Running coloc for trait=$trait, chr=$chr, batch=$batch"
 
-Rscript /data/projects/China_Brain_MultiOmics/methylation/mQTL/coloc/script/coloc_script/coloc_BBJ.R $trait $chr $batch
+Rscript /methylation/mQTL/coloc/script/coloc_script/coloc_BBJ.R $trait $chr $batch
