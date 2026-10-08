@@ -15,13 +15,13 @@ library(arrow)
 study ='CBMAP'
 i = as.integer(str_split_fixed(chr,'chr',n=2)[,2])
 
-bbj_trait_all = read_excel('/data/shared_data/BBJ_GWAS/BBJ_trait.xlsx')
+bbj_trait_all = read_excel('/BBJ_GWAS/BBJ_trait.xlsx')
 bbj_type = as.character(bbj_trait_all[match(trait, bbj_trait_all$Trait), "Status"])
 
 current_cpgs <- read.table(paste0('/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/tmp/',study,'_',cell,'_chr',i,'_cpg.txt'),header=F)$V1
 if (bbj_type == 'conti') {
     ### load GWAS data
-    GWAS = fread(paste0('/data/shared_data/BBJ_GWAS/hum0197.v3.BBJ.',trait,'.v1/GWASsummary_',trait,'_Japanese_SakaueKanai2020.auto.txt.gz'))
+    GWAS = fread(paste0('/BBJ_GWAS/hum0197.v3.BBJ.',trait,'.v1/GWASsummary_',trait,'_Japanese_SakaueKanai2020.auto.txt.gz'))
     N = as.integer(bbj_trait_all[match(trait, bbj_trait_all$Trait), 4])
     GWAS = GWAS[,c('SNP', 'ALLELE1', 'ALLELE0', 'BETA', 'SE', 'A1FREQ')]
     GWAS$varbeta = GWAS$SE ^ 2; GWAS = GWAS[,-c('SE')]
@@ -41,7 +41,7 @@ if (bbj_type == 'conti') {
     cis_mqtl = merge(cis_mqtl, qtl_bim, by='snp')
 } else if (bbj_type == 'bin') {
     ### load GWAS data
-    GWAS = fread(paste0('/data/shared_data/BBJ_GWAS/hum0197.v3.BBJ.',trait,'.v1/GWASsummary_',trait,'_Japanese_SakaueKanai2020.auto.txt.gz'))[,c('SNPID', 'Allele2', 'Allele1', 'BETA', 'SE')]
+    GWAS = fread(paste0('/BBJ_GWAS/hum0197.v3.BBJ.',trait,'.v1/GWASsummary_',trait,'_Japanese_SakaueKanai2020.auto.txt.gz'))[,c('SNPID', 'Allele2', 'Allele1', 'BETA', 'SE')]
     GWAS$varbeta = GWAS$SE ^ 2; GWAS = GWAS[,-c('SE')]
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'varbeta')
     GWAS = distinct(GWAS, snp, .keep_all= TRUE)
