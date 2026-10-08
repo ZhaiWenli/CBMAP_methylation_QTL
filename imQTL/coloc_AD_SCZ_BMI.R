@@ -35,7 +35,7 @@ current_cpgs <- read.table(paste0('/methylation/mQTL/celltype_mQTL/tensorqtl/col
 if (trait == 'BMI') { # for quasi-continuous phenotypes
   if (study == 'CBMAP') {
     ### load GWAS data
-    GWAS = fread("/data/shared_data/neuropsych_GWAS/EAS/processed/BMI/BMI_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se', 'Frq')]
+    GWAS = fread("/neuropsych_GWAS/EAS/processed/BMI/BMI_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se', 'Frq')]
     GWAS$varbeta = GWAS$se ^ 2; GWAS = GWAS[,-c('se')]
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'MAF', 'varbeta')
     GWAS = distinct(GWAS, snp, .keep_all= TRUE)
@@ -56,7 +56,7 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
     cis_mqtl = merge(cis_mqtl, qtl_bim, by='snp')
   } else if (study == 'ROSMAP') {
     ### load GWAS data
-    GWAS = fread("/data/shared_data/neuropsych_GWAS/EUR/processed/BMI/BMI_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se', 'Freq_Tested_Allele')]
+    GWAS = fread("/neuropsych_GWAS/EUR/processed/BMI/BMI_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se', 'Freq_Tested_Allele')]
     GWAS$varbeta = GWAS$se ^ 2; GWAS = GWAS[,-c('se')]
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'MAF', 'varbeta')
     GWAS = distinct(GWAS, snp, .keep_all= TRUE)
@@ -80,10 +80,10 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
   if (study == 'CBMAP') {
     ### load GWAS data
     if (trait == 'AD') {
-      GWAS = fread("/data/shared_data/TPMI/result/meta_analysis/meta_results_1.tbl")[,c('MarkerName', 'Allele1', 'Allele2', 'Effect', 'StdErr')]
+      GWAS = fread("/TPMI/result/meta_analysis/meta_results_1.tbl")[,c('MarkerName', 'Allele1', 'Allele2', 'Effect', 'StdErr')]
       colnames(GWAS) = c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')
     } else if (trait == 'SCZ') {
-      GWAS = fread("/data/shared_data/neuropsych_GWAS/EAS/processed/SCZ/SCZ_processed2.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')]
+      GWAS = fread("/neuropsych_GWAS/EAS/processed/SCZ/SCZ_processed2.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')]
     }
     GWAS$varbeta = GWAS$se ^ 2; GWAS = GWAS[,-c('se')]
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'varbeta')
@@ -103,9 +103,9 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
   } else if (study == 'ROSMAP') {
     ### load GWAS data
     if (trait == 'AD') {
-      GWAS = fread("/data/shared_data/neuropsych_GWAS/EUR/processed/AD/file1/AD2_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')]
+      GWAS = fread("/neuropsych_GWAS/EUR/processed/AD/file1/AD2_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')]
     } else if (trait == 'SCZ') {
-      GWAS = fread("/data/shared_data/neuropsych_GWAS/EUR/processed/SCZ/file1/SCZfile1_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')]
+      GWAS = fread("/neuropsych_GWAS/EUR/processed/SCZ/file1/SCZfile1_processed.txt")[,c('rsid', 'effect_allele', 'reference_allele', 'beta', 'se')]
     }
     GWAS$varbeta = GWAS$se ^ 2; GWAS = GWAS[,-c('se')]
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'varbeta')
