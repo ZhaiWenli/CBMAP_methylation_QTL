@@ -3,7 +3,6 @@ trait <- args[1]
 chr <- args[2]
 cell <- args[3]
 
-.libPaths(c(.libPaths(),"/share/data/R4.3_lib/library","/share/home/zhaiwl/R/x86_64-pc-linux-gnu-library/4.3"))
 library("data.table")
 library("coloc")
 library("argparse")
@@ -13,13 +12,13 @@ library("dplyr")
 library("readxl")
 library(arrow)
 
-study ='ROSMAP'
+study ='CBMAP'
 i = as.integer(str_split_fixed(chr,'chr',n=2)[,2])
 
-# res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/results/'
+# res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/results/'
 # cells = c("Endo", "Exc", "Inh", "Micro", "Oligo", "OPC", "Astro")
 # 
-# cpg_info = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cg_BED.bed.gz')
+# cpg_info = fread('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cg_BED.bed.gz')
 # 
 # for (cell in cells) {
 #   res = fread(paste0(res_dir,'CBMAP_',cell,'_imqtl_1e-5.txt'),header=T)
@@ -28,11 +27,11 @@ i = as.integer(str_split_fixed(chr,'chr',n=2)[,2])
 #   cpg_df$chr = cpg_info[match(cpg_df$cpg, cpg_info$pid),`#Chr`]
 #   for (i in 1:22) {
 #     cpg_by_chr = cpg_df$cpg[which(cpg_df$chr == i)]
-#     write.table(cpg_by_chr,file=paste0('/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/tmp/','CBMAP_',cell,'_chr',i,'_cpg.txt'),quote=F,col.names = F,row.names = F,sep='\t')
+#     write.table(cpg_by_chr,file=paste0('/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/tmp/','CBMAP_',cell,'_chr',i,'_cpg.txt'),quote=F,col.names = F,row.names = F,sep='\t')
 #   }
 # }
 
-current_cpgs <- read.table(paste0('/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/tmp/',study,'_',cell,'_chr',i,'_cpg.txt'),header=F)$V1
+current_cpgs <- read.table(paste0('/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/tmp/',study,'_',cell,'_chr',i,'_cpg.txt'),header=F)$V1
 if (trait == 'BMI') { # for quasi-continuous phenotypes
   if (study == 'CBMAP') {
     ### load GWAS data
@@ -44,10 +43,10 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
     GWAS$MAF = ifelse(GWAS$MAF == 1, 0.9999, GWAS$MAF)
     N = 158284
     ### load mQTL data
-    sd_cpg = read.table('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cpg_sdY.txt',header=T)
-    coloc_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/CBMAP/'
-    mqtl_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
-    qtl_bim = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
+    sd_cpg = read.table('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cpg_sdY.txt',header=T)
+    coloc_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/CBMAP/'
+    mqtl_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
+    qtl_bim = fread('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
     cis_mqtl = as.data.table(read_parquet(paste0(mqtl_res_dir, cell, '_chr', i, '.cis_qtl_pairs.', i, '.parquet'),col_select = c('phenotype_id','b_g','b_g_se','variant_id')))
     cis_mqtl <- cis_mqtl[phenotype_id %in% current_cpgs]
     cis_mqtl = unique(cis_mqtl)
@@ -65,10 +64,10 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
     GWAS$MAF = ifelse(GWAS$MAF == 1, 0.9999, GWAS$MAF)
     N = 694649
     ### load mQTL data
-    sd_cpg = read.table('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/cpg_sdY.txt',header=T)
-    coloc_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/ROSMAP/'
-    mqtl_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
-    qtl_bim = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/pca_selection/geno_pca/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
+    sd_cpg = read.table('/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/cpg_sdY.txt',header=T)
+    coloc_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/ROSMAP/'
+    mqtl_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
+    qtl_bim = fread('/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/pca_selection/geno_pca/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
     cis_mqtl = as.data.table(read_parquet(paste0(mqtl_res_dir, 'ROSMAP_', cell, '_chr', i, '.cis_qtl_pairs.', i, '.parquet'),col_select = c('phenotype_id','b_g','b_g_se','variant_id')))
     cis_mqtl <- cis_mqtl[phenotype_id %in% current_cpgs]
     cis_mqtl = unique(cis_mqtl)
@@ -90,10 +89,10 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'varbeta')
     GWAS = distinct(GWAS, snp, .keep_all= TRUE)
     ### load mQTL data
-    sd_cpg = read.table('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cpg_sdY.txt',header=T)
-    coloc_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/CBMAP/'
-    mqtl_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
-    qtl_bim = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
+    sd_cpg = read.table('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cpg_sdY.txt',header=T)
+    coloc_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/CBMAP/'
+    mqtl_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
+    qtl_bim = fread('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
     cis_mqtl = as.data.table(read_parquet(paste0(mqtl_res_dir, cell, '_chr', i, '.cis_qtl_pairs.', i, '.parquet'),col_select = c('phenotype_id','b_g','b_g_se','variant_id')))
     cis_mqtl <- cis_mqtl[phenotype_id %in% current_cpgs]
     cis_mqtl = unique(cis_mqtl)
@@ -112,10 +111,10 @@ if (trait == 'BMI') { # for quasi-continuous phenotypes
     colnames(GWAS) = c('snp', 'ALT', 'REF', 'beta', 'varbeta')
     GWAS = distinct(GWAS, snp, .keep_all= TRUE)
     ### load mQTL data
-    sd_cpg = read.table('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/cpg_sdY.txt',header=T)
-    coloc_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/ROSMAP/'
-    mqtl_res_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
-    qtl_bim = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/pca_selection/geno_pca/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
+    sd_cpg = read.table('/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/cpg_sdY.txt',header=T)
+    coloc_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/ROSMAP/'
+    mqtl_res_dir = '/methylation/mQTL/celltype_mQTL/tensorqtl/results/res_chr/'
+    qtl_bim = fread('/methylation/mQTL/mQTL_mapping/result/ROSMAP_mQTL/mQTL_mapping/b37/QTLtools_input/pca_selection/geno_pca/sample_geno.bim')[,c('V2', 'V4', 'V5', 'V6')]
     cis_mqtl = as.data.table(read_parquet(paste0(mqtl_res_dir, 'ROSMAP_', cell, '_chr', i, '.cis_qtl_pairs.', i, '.parquet'),col_select = c('phenotype_id','b_g','b_g_se','variant_id')))
     cis_mqtl <- cis_mqtl[phenotype_id %in% current_cpgs]
     cis_mqtl = unique(cis_mqtl)
@@ -177,43 +176,3 @@ if(!dir.exists(paste0(coloc_res_dir,trait,'/'))){
   dir.create(paste0(coloc_res_dir,trait,'/'))
 }
 save(my.res.all, file=paste0(coloc_res_dir, trait,'/', study, '_',cell,'_',trait,'_coloc_chr', i, '.RData'))
-
-# library(readxl)
-# library(data.table)
-# traits <- c('AD','SCZ','BMI')
-# cells <- c("Exc", "Inh", "Micro", "Oligo", "OPC", "Astro","Endo")
-# chr_batches <- list(
-#   chr1 = 1,
-#   chr2 = 1,
-#   chr3 = 1,
-#   chr4 = 1,
-#   chr5 = 1,
-#   chr6 = 1,
-#   chr7 = 1,
-#   chr8 = 1,
-#   chr9 = 1,
-#   chr10 = 1,
-#   chr11 = 1,
-#   chr12 = 1,
-#   chr13 = 1,
-#   chr14 = 1,
-#   chr15 = 1,
-#   chr16 = 1,
-#   chr17 = 1,
-#   chr18 = 1,
-#   chr19 = 1,
-#   chr20 = 1,
-#   chr21 = 1,
-#   chr22 = 1
-# )
-# 
-# lines <- c()
-# for (trait in traits) {
-#   for (chr in names(chr_batches)) {
-#     for (cell in cells) {
-#       lines <- c(lines, paste(trait, chr, cell, sep = ","))
-#     }
-#   }
-# }
-# 
-# writeLines(lines, "/data/projects/China_Brain_MultiOmics/methylation/mQTL/celltype_mQTL/tensorqtl/coloc/tmp/cbmap_task_list2.txt")
