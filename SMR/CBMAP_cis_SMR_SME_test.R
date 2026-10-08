@@ -1,112 +1,95 @@
-######## mediation analysis SNP---Expression---Methylation ##########
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 1) {
-  stop("Please provide the array index (n)")
-}
-i <- as.integer(args[1])
+args = as.numeric(commandArgs(TRUE))
+print(args)
+i = args
 
-# .libPaths(c(.libPaths(),"/share/data/R4.3_lib/library","/share/home/zhaiwl/R/x86_64-pc-linux-gnu-library/4.3"))
+
 library(data.table)
-library(BEDMatrix)
 library(stringr)
 library(dplyr)
-library(bruceR)
-library(readxl)
-library(rhdf5)
+
+setwd('/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/input/tmp')
+smr_file_dir = '/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/input/'
+smr_res_dir = '/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/result/'
+
+############ cis-eQTL input ###########
+eqtl_res=fread('/humanBrain_RNAseq/CBMAP_RNAseq_protein_coding/QTLtools_res/qtltools_cis_nominal_main_p1.txt')
+eqtl_res = eqtl_res[,c(1:12,14,16)]
+eqtl_res=distinct(eqtl_res,pheno_id,variants_id,.keep_all=T)
+geno_frq = fread('/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/input/cis_eqtl_frq.frq')
+snp = intersect(geno_frq$SNP, eqtl_res$variants_id)
+eqtl_res = eqtl_res[which(eqtl_res$variants_id %chin% snp),]
+geno_frq = geno_frq[which(geno_frq$SNP %chin% snp),]
+fwrite(eqtl_res,file='cis_eqtl_qtltools.txt',col.names = F, row.names=F, quote=F,sep='\t')
+
+smr_cmd <- paste0("smr ",
+                  "--eqtl-summary ",smr_file_dir,"cis_eqtl_qtltools.txt ",
+                  "--qtltools-nominal-format --make-besd ",
+                  "--out ",smr_file_dir,"tmp/cis_eqtl_besd")
+system(smr_cmd, wait=T)
+
+# update epi file
+epi=fread('cis_eqtl_besd.epi')
+epi$V5 = str_split_fixed(epi$V2,'_',n=2)[,1]
+fwrite(epi,file='cis_eqtl_besd.epi',col.names = F, row.names=F, quote=F,sep='\t')
+# update esi file
+esi = fread('cis_eqtl_besd.esi')
+ind = esi$V2
+esi = merge(esi, geno_frq[,2:5], by.x='V2', by.y='SNP', all.x=T)
+esi = esi[,c(2,1,3,4,8:10)]
+rownames(esi) = esi$V2
+esi = esi[ind,]
+fwrite(esi,file='cis_eqtl_besd.esi',col.names = F, row.names=F, quote=F,sep='\t')
+
+smr_cmd <- paste0("smr ",
+                  "--beqtl-summary ",smr_file_dir,"cis_eqtl_besd ",
+                  "--update-esi ",smr_file_dir,"cis_eqtl_besd.esi")
+system(smr_cmd, wait=T)
+smr_cmd <- paste0("smr ",
+                  "--beqtl-summary ",smr_file_dir,"cis_eqtl_besd ",
+                  "--update-epi ",smr_file_dir,"cis_eqtl_besd.epi")
+system(smr_cmd, wait=T)
 
 
-# loading data
-# pairs to be analyzed
-sem_res = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/result/cis_SMR_SEM_res.txt',header=T)
-chunk_size <- 1300
-chunks <- split(sem_res, ceiling(seq_along(1:nrow(sem_res)) / chunk_size))
-sem_res0 <- chunks[[i]];rm(sem_res);rm(chunks)
+############ cis-mQTL input ###########
+# mqtl_res=fread(paste0('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_result/chr_res/qtltools_cis_nominal_chr',i,'.txt'))
+# mqtl_res = mqtl_res[,c(1:12,14,16)]
+# mqtl_res = distinct(mqtl_res,V1,V8,.keep_all=T)
+# geno_frq = fread('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/snp.maf.frq')
+# snp = intersect(geno_frq$SNP, mqtl_res$V8)
+# mqtl_res = mqtl_res[which(mqtl_res$V8 %chin% snp),]
+# geno_frq = geno_frq[which(geno_frq$SNP %chin% snp),]
+# fwrite(mqtl_res,file=paste0(smr_file_dir,'cis_mqtl_chr/cis_mqtl_chr',i,'_qtltools.txt'),sep='\t',col.names = F, row.names=F, quote=F)
+# 
+# smr_cmd <- paste0("smr ",
+#                   "--eqtl-summary ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr", i, "_qtltools.txt ",
+#                   "--qtltools-nominal-format --make-besd ",
+#                   "--out ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd")
+# system(smr_cmd, wait=T)
+# 
+# # update epi file
+# epi=fread(paste0(smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.epi"))
+# epi$V5 = epi$V2
+# fwrite(epi,file=paste0(smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.epi"),col.names = F, row.names=F, quote=F,sep='\t')
+# # update esi file
+# esi = fread(paste0(smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.esi"))
+# esi = merge(esi, geno_frq[,2:5], by.x='V2', by.y='SNP', all.x=T)
+# esi = esi[,c(2,1,3,4,8:10)]
+# fwrite(esi,file=paste0(smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.esi"),col.names = F, row.names=F, quote=F,sep='\t')
+# 
+# smr_cmd <- paste0("/data/tools/SMR/smr-1.3.1-linux-x86_64/smr ",
+#                   "--beqtl-summary ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd ",
+#                   "--update-esi ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.esi")
+# system(smr_cmd, wait=T)
+# smr_cmd <- paste0("/data/tools/SMR/smr-1.3.1-linux-x86_64/smr ",
+#                   "--beqtl-summary ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd ",
+#                   "--update-epi ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.epi")
+# system(smr_cmd, wait=T)
 
-cpgs = unique(sem_res0$Outco_ID)
-snps = unique(sem_res0$topSNP)
-genes = unique(sem_res0$Expo_ID)
-gene_ids = unlist(str_split_fixed(genes,"_",n=2)[,2])
-gene_names = unlist(str_split_fixed(genes,"_",n=2)[,1])
-
-# RNA-seq data
-exp0 = fread('/data/projects/China_Brain_MultiOmics/humanBrain_RNAseq/CBMAP_RNAseq_protein_coding/RNAseq_process/RNAseq_data_qn_comb.txt',header=T)
-exp = as.data.frame(t(exp0))
-colnames(exp) = exp[1,]
-exp = exp[-1,]
-exp = apply(exp,2,as.numeric)
-rownames(exp) = colnames(exp0)[2:ncol(exp0)]
-rm(exp0)
-# methylation data
-methy <- h5read("/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5",'Mdat')
-colnames(methy) = h5read("/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5",'colnames')
-rownames(methy) = h5read("/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5",'rownames')
-methy = methy[,cpgs]
-
-# genotype data
-geno = BEDMatrix('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/sample_geno.bed')
-colnames(geno) = str_split_fixed(colnames(geno),"_",n=2)[,1]
-rownames(geno) = str_split_fixed(rownames(geno),"_",n=2)[,1]
-geno = geno[,snps]
-idkey = as.data.frame(fread('/data/shared_data/China_Brain_MultiOmics/WGS/firstpass_20241126/WGS_firstpass_sample_id_info_20241127.txt'))
-rownames(geno) = unlist(idkey[match(rownames(geno),idkey$WGS_sample_name),'sample_name'])
-# covariants
-cov = fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cov.txt',header=T)
-cov = as.data.frame(t(cov))
-colnames(cov) = cov[1,]
-cov = cov[-1,]
-cov[,c(1,4:ncol(cov))] = apply(cov[,c(1,4:ncol(cov))],2,as.numeric)
-cov$sex = factor(cov$sex)
-cov$bank = factor(cov$bank)
-rownames(cov) = unlist(idkey[match(rownames(cov),idkey$WGS_sample_name),'sample_name'])
-pmd_rin = read.csv('/data/shared_data/China_Brain_MultiOmics/sample_information/final/CBMAP_sample_info_1187_final_20250523.csv',header=T)
-cov$PMD = unlist(pmd_rin[match(rownames(cov),pmd_rin$id),'PMD'])
-cov$RIN = unlist(pmd_rin[match(rownames(cov),pmd_rin$id),'RIN'])
-
-sample = intersect(rownames(exp),rownames(geno)) # 823 samples
-exp = exp[sample,gene_ids] # 823 15621
-geno = geno[sample,] # 823 283052
-methy = methy[sample,] # 823 316834
-cov = cov[sample,c(1,2,3,4,21,22)] # 823 22
-
-
-##### mediation analysis #####
-# library(ggplot2)
-# library(data.table)
-
-mediation_res = data.frame('cpg'=NA, 'gene'=NA, 'snp'=NA, 'Mediated.Prop'=NA, 'Indirect_beta'=NA, 'Indirect_P'=NA, 'Direct_beta'=NA, 'Direct_P'=NA, 'Total_beta'=NA, 'Total_P'=NA)
-o = 0
-for (j in 1:nrow(sem_res0)) {
-  cpg = sem_res0$Outco_ID[j]
-  gene = sem_res0$Expo_ID[j]
-  gene_id = unlist(str_split_fixed(gene,"_",n=2)[,2])
-  gene_name = unlist(str_split_fixed(gene,"_",n=2)[,1])
-  snp = sem_res0$topSNP[j]
-  dat = data.frame('methy'=methy[,cpg], 'expr'=exp[,gene_id], 'genotype'=geno[,snp],
-                   'sex'=cov$sex, 'age'=cov$age, 'NeuN_pos'=cov$NeuN_pos, 'bank'=cov$bank, 'PMD'=cov$PMD, 'RIN'=cov$RIN)
-  contcont <- PROCESS(data=dat, y='expr', x='genotype', meds='methy', covs=c('sex','age','NeuN_pos','bank','PMD','RIN'), nsim=1000, seed=1, digits=7)
-  o <- o + 1
-  mediation_res[o,1] = cpg
-  mediation_res[o,2] = gene
-  mediation_res[o,3] = snp
-  mediation_res[o,4]= contcont$results[[1]]$mediation[1,1] / contcont$results[[1]]$mediation[3,1]
-  mediation_res[o,5]= contcont$results[[1]]$mediation[1,1]
-  mediation_res[o,6]= contcont$results[[1]]$mediation[1,'pval']
-  mediation_res[o,7]= contcont$results[[1]]$mediation[2,1]
-  mediation_res[o,8]= contcont$results[[1]]$mediation[2,'pval']
-  mediation_res[o,9]= contcont$results[[1]]$mediation[3,1]
-  mediation_res[o,10]= contcont$results[[1]]$mediation[3,'pval']
-}
-fwrite(mediation_res,file=paste0('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/result/SME_mediation_chunk_res/SME_mediation_chunk_',i,'.txt'),col.names=T,row.names=F,quote=F,sep='\t')
-
-
-# mediation results summary
-res = data.table()
-files = list.files('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/result/SME_mediation_chunk_res',full.names = T)
-for (file in files) {
-  res0 = fread(file,header=T)
-  res = rbind(res,res0)
-}
-res$fdr = p.adjust(res$Indirect_P,'BH')
-sum(res$fdr<0.05) # 2008 P-threshold 0.0009669499
-fwrite(res,file='/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL-mCpG/result/CBMAP_SMR/result/SME_mediation_res.txt',quote=F,sep='\t')
-
+########### Run cis-SMR ##########
+smr_cmd <- paste0("/data/tools/SMR/smr-1.4.0-linux-x86_64/smr ",
+                  "--bfile ","/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/sample_geno ",
+                  "--beqtl-summary ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd ",
+                  "--beqtl-summary ",smr_file_dir,"cis_eqtl_besd ",
+                  "--thread-num 3 ",
+                  "--out ",smr_res_dir,"cis_SMR/cis_SMR_chr",i)
+system(smr_cmd, wait=T)
