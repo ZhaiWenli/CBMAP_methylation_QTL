@@ -76,11 +76,11 @@ system(smr_cmd, wait=T)
 # esi = esi[,c(2,1,3,4,8:10)]
 # fwrite(esi,file=paste0(smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.esi"),col.names = F, row.names=F, quote=F,sep='\t')
 # 
-# smr_cmd <- paste0("/data/tools/SMR/smr-1.3.1-linux-x86_64/smr ",
+# smr_cmd <- paste0("smr ",
 #                   "--beqtl-summary ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd ",
 #                   "--update-esi ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.esi")
 # system(smr_cmd, wait=T)
-# smr_cmd <- paste0("/data/tools/SMR/smr-1.3.1-linux-x86_64/smr ",
+# smr_cmd <- paste0("smr ",
 #                   "--beqtl-summary ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd ",
 #                   "--update-epi ",smr_file_dir,"cis_mqtl_chr/cis_mqtl_chr",i,"_besd.epi")
 # system(smr_cmd, wait=T)
