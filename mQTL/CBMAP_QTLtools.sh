@@ -14,4 +14,4 @@ taskplugin=task/affinity
 
 
 
-Rscript /data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/script/CBMAP_mQTL_mapping/CBMAP_QTLtools.R ${SLURM_ARRAY_TASK_ID}
+Rscript /methylation/mQTL/mQTL_mapping/script/CBMAP_mQTL_mapping/CBMAP_QTLtools.R ${SLURM_ARRAY_TASK_ID}
