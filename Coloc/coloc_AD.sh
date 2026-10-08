@@ -12,9 +12,9 @@
 #SBATCH --array=18-229%10
 taskplugin=task/affinity
 
-task=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" /data/projects/China_Brain_MultiOmics/methylation/mQTL/coloc/script/coloc_script/AD_task_cbmap_list.txt)
+task=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" /methylation/mQTL/coloc/script/coloc_script/AD_task_cbmap_list.txt)
 IFS=',' read trait chr batch <<< "$task"
 
 echo "Running coloc for trait=$trait, chr=$chr, batch=$batch"
 export PATH=/share/home/apps/R4.3.3/bin:$PATH
-Rscript --vanilla -e '.libPaths(c("/usr/local/lib/R/site-library", .libPaths())); .libPaths(c("/usr/local/lib/R/site-library", .libPaths())); .libPaths(c("/usr/lib/R/library", .libPaths())); source("/data/projects/China_Brain_MultiOmics/methylation/mQTL/coloc/script/coloc_script/coloc_AD.R")' $trait $chr $batch
+Rscript --vanilla -e '.libPaths(c("/usr/local/lib/R/site-library", .libPaths())); .libPaths(c("/usr/local/lib/R/site-library", .libPaths())); .libPaths(c("/usr/lib/R/library", .libPaths())); source("/methylation/mQTL/coloc/script/coloc_script/coloc_AD.R")' $trait $chr $batch
