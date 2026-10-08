@@ -9,30 +9,24 @@ library(rhdf5)
 library(BEDMatrix)
 library(stringr)
 
-qtltool_input_dir = '/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/'
+qtltool_input_dir = '/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/'
 
 
 #### prepare cg_BED #Chr start end pid gid strand sampleid
 # get cpg data
-cg=h5read('/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5','Mdat')
-colnames(cg) = h5read('/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5','colnames')
-rownames(cg) = h5read('/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5','rownames')
-# dim(cg)
-# 1031 907506
+cg=h5read('/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5','Mdat')
+colnames(cg) = h5read('/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5','colnames')
+rownames(cg) = h5read('/methylation/data/CBMAP/DNAm_processed/final_DNAm_invMdat.h5','rownames')
 
 # get genotype
-geno = BEDMatrix("/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/genotype_processed/firstpass_20241126_03.bed")
+geno = BEDMatrix("/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/genotype_processed/firstpass_20241126_03.bed")
 rownames(geno) = str_split_fixed(rownames(geno), '_', n=2)[,2]
-#dim(geno)
-#[1] 1372 5645435
 
 # match sample ID
-idkey = as.data.frame(fread('/data/shared_data/China_Brain_MultiOmics/WGS/firstpass_20241126/WGS_firstpass_sample_id_info_20241127.txt'))
-sampleid = intersect(rownames(cg), idkey$sample_name) #1008 length
+idkey = as.data.frame(fread('WGS_firstpass_sample_id_info_20241127.txt'))
+sampleid = intersect(rownames(cg), idkey$sample_name)
 idkey = idkey[which(idkey$sample_name %chin% sampleid),]
 geno = geno[idkey$WGS_sample_name,]
-# dim(geno)
-# [1] 1018 5645435
 rownames(geno) = idkey[match(rownames(geno), idkey$WGS_sample_name), 'sample_name']
 sampleid = intersect(rownames(cg), rownames(geno)) #1018 length
 
@@ -43,7 +37,7 @@ colnames(cg_tmp)[1] = 'pid'
 rownames(cg_tmp) = NULL
 colnames(cg_tmp)[2:ncol(cg_tmp)] = idkey[match(colnames(cg_tmp)[2:ncol(cg_tmp)], idkey$sample_name),'WGS_sample_name']
 
-cg_info <- read.csv('/data/shared_data/China_Brain_MultiOmics/methylation/935k_annotation/EPIC-8v2-0_A1.csv',header=F)
+cg_info <- read.csv('/methylation/935k_annotation/EPIC-8v2-0_A1.csv',header=F)
 cg_info <- cg_info[-c(1:7),]
 colnames(cg_info) <- cg_info[1,]
 cg_info <- cg_info[-1,]
@@ -57,12 +51,10 @@ cg_BED <- merge(cg_info, cg_tmp, by='pid', all.y=T)
 cg_BED <- cg_BED[,c('Chr','start','end','pid','gid','strand', colnames(cg_tmp)[2:ncol(cg_tmp)])]
 cg_BED$Chr=as.integer(cg_BED$Chr)
 cg_BED$start=as.integer(cg_BED$start)
-cg_BED <- cg_BED[order(cg_BED$Chr, cg_BED$start),]      #order chr and start
+cg_BED <- cg_BED[order(cg_BED$Chr, cg_BED$start),]
 cg_BED <- cg_BED[-which(is.na(cg_BED$start)==T),]
 colnames(cg_BED)[1] <- '#Chr'
-# dim(cg_BED)
-# [1] 889881   1014
-write.table(cg_BED, '/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cg_BED.bed', quote =F, sep = '\t', row.names = F, col.names = T)
+write.table(cg_BED, '/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/cg_BED.bed', quote =F, sep = '\t', row.names = F, col.names = T)
 
 # group cg according to #Chr 
 split_data <- split(cg_BED, cg_BED$'#Chr')
@@ -70,54 +62,45 @@ for (chr in names(split_data)) {
   chr_data <- split_data[[chr]]
   write.table(chr_data, paste0(qtltool_input_dir, 'cg_BED_chr/cg_BED_chr', chr, '.bed'), quote =F, sep = '\t', row.names = F, col.names = T)
   bgzip_cmd <- paste0('bgzip -f ',qtltool_input_dir,'cg_BED_chr/cg_BED_chr', chr, '.bed && tabix -p bed ',qtltool_input_dir,'cg_BED_chr/cg_BED_chr',chr,'.bed.gz')  
-  system(bgzip_cmd, wait=T)     #index
+  system(bgzip_cmd, wait=T)   
 }
 
 #### prepare geno_CVF ####
 #bfile to vcf
-plink_cmd <- paste0("/data/tools/plink_v1.90b7.2/plink --bfile ",qtltool_input_dir,"geno_pca_20/sample_geno ",
+plink_cmd <- paste0("plink --bfile ",qtltool_input_dir,"geno_pca_20/sample_geno ",
                     "--recode vcf-fid ",
-                    "--out ",qtltool_input_dir,"geno")                                              #bfile to vcf
+                    "--out ",qtltool_input_dir,"geno")                                        
 system(plink_cmd, wait=T)                                                                               
 
 #vcf to vcf.gz
 bgzip_cmd <- paste0('bgzip -c ',qtltool_input_dir,'geno.vcf > ',
-                    qtltool_input_dir,'geno.vcf.gz')                                                  #zip vcf
+                    qtltool_input_dir,'geno.vcf.gz')                                     
 system(bgzip_cmd, wait=T)                                                                                                      
 
 #make index
-tabix_cmd <- paste0('tabix -p vcf ',qtltool_input_dir,'geno.vcf.gz')                                  #index            
+tabix_cmd <- paste0('tabix -p vcf ',qtltool_input_dir,'geno.vcf.gz')                 
 system(tabix_cmd, wait=T)
 
 
 #### prepare COV file ####
 #sex & bank & age
-pdat = read.csv("/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/phenotype.csv", header=T)
+pdat = read.csv("methylation/data/CBMAP/DNAm_processed/phenotype.csv", header=T)
 cov=data.frame(id=sampleid, age=NA, sex=NA, bank=NA, NeuN_pos=NA, gpca1=NA, gpca2=NA, gpca3=NA, gpca4=NA, gpca5=NA, gpca6=NA, gpca7=NA, gpca8=NA, gpca9=NA, gpca10=NA, mpca1=NA, mpca2=NA, mpca3=NA, mpca4=NA, mpca5=NA, mpca6=NA)
 cov$sex = pdat[match(cov$id, pdat$Sample_Name), 'sex_male']
 cov$bank = pdat[match(cov$id, pdat$Sample_Name), 'bank']
-#cov$bank = ifelse(cov$bank=='zju', 0, cov$bank)
-#cov$bank = ifelse(cov$bank=='pumc', 1, cov$bank)
-#cov$bank = ifelse(cov$bank=='csu', 2, cov$bank)
-#cov$bank.zju = ifelse(cov$bank=='zju', 1, 0)
-#cov$bank.pumc = ifelse(cov$bank=='pumc', 1, 0)
-#cov$bank.csu = ifelse(cov$bank=='csu', 1, 0)
-#cov = select(cov,-bank)
 cov$age = pdat[match(cov$id, pdat$Sample_Name), 'age']
 
-#batch
-
 #neuron proportion
-sh_celltype = read.table('/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/sh_DNAm_processed/celltype.txt', header=T)
-zk_celltype = read.table('/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/zk_DNAm_processed/celltype.txt', header=T)
+sh_celltype = read.table('/methylation/data/CBMAP/DNAm_processed/sh_DNAm_processed/celltype.txt', header=T)
+zk_celltype = read.table('/methylation/data/CBMAP/DNAm_processed/zk_DNAm_processed/celltype.txt', header=T)
 celltype = rbind(sh_celltype, zk_celltype)
-pdat2 = read.csv('/data/projects/China_Brain_MultiOmics/methylation/data/CBMAP/DNAm_processed/phenotype.csv', header=T)
+pdat2 = read.csv('/methylation/data/CBMAP/DNAm_processed/phenotype.csv', header=T)
 rownames(celltype) = pdat2[match(rownames(celltype), pdat2$barcode_id), 'Sample_Name']
 celltype = celltype[sampleid,]
 cov$NeuN_pos = celltype[match(cov$id, rownames(celltype)), 'NeuN_pos']
 
 #top 5 geno_PCA
-gpca = as.data.frame(fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/geno_pca_20.eigenvec'))
+gpca = as.data.frame(fread('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/geno_pca_20/geno_pca_20.eigenvec'))
 gpca$V2 = idkey[match(gpca$V2, idkey$WGS_sample_name), 'sample_name']
 cov$gpca1 = gpca[match(cov$id, gpca$V2), 'V3']
 cov$gpca2 = gpca[match(cov$id, gpca$V2), 'V4']
@@ -131,7 +114,7 @@ cov$gpca9 = gpca[match(cov$id, gpca$V2), 'V11']
 cov$gpca10 = gpca[match(cov$id, gpca$V2), 'V12']
 
 #top 6 DNAm_PCA
-mpca = as.data.frame(fread('/data/projects/China_Brain_MultiOmics/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/DNAm_pca_10/DNAm_pca_10.txt'))
+mpca = as.data.frame(fread('/methylation/mQTL/mQTL_mapping/result/CBMAP_mQTL/QTLtools_input/DNAm_pca_10/DNAm_pca_10.txt'))
 cov$mpca1 = mpca[match(cov$id, mpca$V1), 'V2']
 cov$mpca2 = mpca[match(cov$id, mpca$V1), 'V3']
 cov$mpca3 = mpca[match(cov$id, mpca$V1), 'V4']
