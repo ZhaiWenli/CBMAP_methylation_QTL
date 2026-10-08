@@ -19,17 +19,9 @@ task_id=$SLURM_ARRAY_TASK_ID
 trait_idx=$(( task_id / 22 ))
 chr=$(( task_id % 22 + 1 ))
 trait=${traits[$trait_idx]}
-
-main_dir='/data/projects/China_Brain_MultiOmics/methylation/mQTL/MA-FOCUS'
-
-echo "================================================="
-echo "SLURM Array Task ID : $task_id"
-echo "Processing Trait    : $trait"
-echo "Processing CHR      : $chr"
-echo "================================================="
-
+main_dir='/methylation/mQTL/MA-FOCUS'
 source activate /share/apps/anaconda3/envs/ma-focus
-cd /data/projects/China_Brain_MultiOmics/methylation/mQTL/MA-FOCUS/results
+cd /methylation/mQTL/MA-FOCUS/results
 
 focus finemap ${main_dir}/GWAS_files/${trait}_EUR.cleaned.sumstats.gz:${main_dir}/GWAS_files/${trait}_EAS.cleaned.sumstats.gz \
               ${main_dir}/LD_files/1000GP3_multiPop_allelesAligned/EUR/1000G.EUR.QC.allelesAligned.${chr}:${main_dir}/LD_files/1000GP3_multiPop_allelesAligned/EAS/1000G.EAS.QC.allelesAligned.${chr} \
