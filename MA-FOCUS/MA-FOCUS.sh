@@ -20,7 +20,7 @@ trait_idx=$(( task_id / 22 ))
 chr=$(( task_id % 22 + 1 ))
 trait=${traits[$trait_idx]}
 main_dir='/methylation/mQTL/MA-FOCUS'
-source activate /share/apps/anaconda3/envs/ma-focus
+source activate /anaconda3/envs/ma-focus
 cd /methylation/mQTL/MA-FOCUS/results
 
 focus finemap ${main_dir}/GWAS_files/${trait}_EUR.cleaned.sumstats.gz:${main_dir}/GWAS_files/${trait}_EAS.cleaned.sumstats.gz \
